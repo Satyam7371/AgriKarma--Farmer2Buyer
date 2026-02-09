@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: agrikarma-backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/agrikarma?options=-c%20TimeZone=UTC
+    username: agrikarma_user
+    password: agrikarma_pass
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC   # ✅ THIS LINE FIXES IT
+
+server:
+  port: 8080
