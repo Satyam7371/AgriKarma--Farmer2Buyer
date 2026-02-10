@@ -6,11 +6,14 @@ import org.example.agrikarmabackend.common.enums.DealStatus;
 import org.example.agrikarmabackend.listing.entity.Listing;
 import org.example.agrikarmabackend.listing.repository.ListingRepository;
 import org.example.agrikarmabackend.request.dto.CreateDealRequest;
+import org.example.agrikarmabackend.request.dto.DealRequestResponse;
 import org.example.agrikarmabackend.request.entity.DealRequest;
 import org.example.agrikarmabackend.request.repository.DealRequestRepository;
 import org.example.agrikarmabackend.user.entity.User;
 import org.example.agrikarmabackend.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -65,5 +68,43 @@ public class DealRequestService {
 
         dealRequestRepository.save(dealRequest);
     }
+
+
+    // this is basically for dashboard showing listings requests for bot hbuyer and farmer
+
+     // returns all requests created by the logged in buyer
+    public List<DealRequestResponse> getRequestsByBuyer(String buyerEmail) {
+
+        return dealRequestRepository.findByBuyer_Email(buyerEmail)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+
+     // returns all incoming requests for listings owned by the logged in farmer
+    public List<DealRequestResponse> getRequestsForFarmer(String farmerEmail) {
+
+        return dealRequestRepository.findByListing_CreatedBy_Email(farmerEmail)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+
+     // maps DealRequest entity to response DTO
+    private DealRequestResponse toResponse(DealRequest request) {
+
+        return new DealRequestResponse(
+                request.getId(),
+                request.getListing().getId(),
+                request.getListing().getTitle(),
+                request.getBuyer().getEmail(),
+                request.getStatus(),
+                request.getMessage(),
+                request.getCreatedAt()
+        );
+    }
+
 }
 

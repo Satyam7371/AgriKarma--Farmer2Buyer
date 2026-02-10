@@ -40,5 +40,31 @@ public class DealRequestController {
         dealRequestService.actOnRequest(id, authentication.getName(), request.action());
         return ResponseEntity.ok("Request updated successfully");
     }
+
+
+
+
+
+    // this is to view the requests
+    // BUYER dashboard - view own requests
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('BUYER')")
+    public ResponseEntity<?> getMyRequests(Authentication authentication) {
+
+        return ResponseEntity.ok(
+                dealRequestService.getRequestsByBuyer(authentication.getName())
+        );
+    }
+
+    // FARMER dashboard - view incoming requests
+    @GetMapping("/incoming")
+    @PreAuthorize("hasRole('FARMER')")
+    public ResponseEntity<?> getIncomingRequests(Authentication authentication) {
+
+        return ResponseEntity.ok(
+                dealRequestService.getRequestsForFarmer(authentication.getName())
+        );
+    }
+
 }
 
