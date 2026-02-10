@@ -39,7 +39,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()   //  public
                         .requestMatchers(HttpMethod.GET, "/listings/**").permitAll()
+
+                        // deal request endpoints (RBAC handled by @PreAuthorize)
+                        .requestMatchers("/requests/**").authenticated()
+
                         .anyRequest().authenticated()              // protected
+
                 )
 
                 // JWT filter before default security filter

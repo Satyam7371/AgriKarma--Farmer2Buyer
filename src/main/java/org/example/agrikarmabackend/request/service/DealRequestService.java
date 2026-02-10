@@ -1,0 +1,69 @@
+package org.example.agrikarmabackend.request.service;
+
+
+import lombok.RequiredArgsConstructor;
+import org.example.agrikarmabackend.common.enums.DealStatus;
+import org.example.agrikarmabackend.listing.entity.Listing;
+import org.example.agrikarmabackend.listing.repository.ListingRepository;
+import org.example.agrikarmabackend.request.dto.CreateDealRequest;
+import org.example.agrikarmabackend.request.entity.DealRequest;
+import org.example.agrikarmabackend.request.repository.DealRequestRepository;
+import org.example.agrikarmabackend.user.entity.User;
+import org.example.agrikarmabackend.user.repository.UserRepository;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class DealRequestService {
+
+    private final DealRequestRepository dealRequestRepository;
+    private final ListingRepository listingRepository;
+    private final UserRepository userRepository;
+
+
+     // buyer sends a request on a listing
+    public void createRequest(CreateDealRequest request, String buyerEmail) {
+
+        User buyer = userRepository.findByEmail(buyerEmail)
+                .orElseThrow(() -> new RuntimeException("Buyer not found"));
+
+        Listing listing = listingRepository.findById(request.listingId())
+                .orElseThrow(() -> new RuntimeException("Listing not found"));
+
+        DealRequest dealRequest = DealRequest.builder()
+                .buyer(buyer)
+                .listing(listing)
+                .message(request.message())
+                .build();
+
+        dealRequestRepository.save(dealRequest);
+    }
+
+
+     // farmer accepts or rejects a request on their own listing
+
+    public void actOnRequest(Long requestId, String farmerEmail, String action) {
+
+        DealRequest dealRequest = dealRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        String ownerEmail = dealRequest.getListing()
+                .getCreatedBy()
+                .getEmail();
+
+        if (!ownerEmail.equals(farmerEmail)) {
+            throw new RuntimeException("Unauthorized action");
+        }
+
+        if ("ACCEPT".equalsIgnoreCase(action)) {
+            dealRequest.setStatus(DealStatus.ACCEPTED);
+        } else if ("REJECT".equalsIgnoreCase(action)) {
+            dealRequest.setStatus(DealStatus.REJECTED);
+        } else {
+            throw new RuntimeException("Invalid action");
+        }
+
+        dealRequestRepository.save(dealRequest);
+    }
+}
+
