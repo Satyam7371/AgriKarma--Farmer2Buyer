@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(
                                 email,
                                 null,
-                                List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                                List.of(new SimpleGrantedAuthority("ROLE_" + role))     // spring security doesn't underststand farmer, buyer in this sway so add prefix role_
                         );
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
