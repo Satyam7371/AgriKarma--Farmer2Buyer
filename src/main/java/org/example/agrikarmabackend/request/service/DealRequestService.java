@@ -25,26 +25,39 @@ public class DealRequestService {
 
 
      // buyer sends a request on a listing
-    public void createRequest(CreateDealRequest request, String buyerEmail) {
+     public void createRequest(CreateDealRequest request, String buyerEmail) {
 
-        User buyer = userRepository.findByEmail(buyerEmail)
-                .orElseThrow(() -> new RuntimeException("Buyer not found"));
+         User buyer = userRepository.findByEmail(buyerEmail)
+                 .orElseThrow(() -> new RuntimeException("Buyer not found"));
 
-        Listing listing = listingRepository.findById(request.listingId())
-                .orElseThrow(() -> new RuntimeException("Listing not found"));
+         Listing listing = listingRepository.findById(request.listingId())
+                 .orElseThrow(() -> new RuntimeException("Listing not found"));
 
-        DealRequest dealRequest = DealRequest.builder()
-                .buyer(buyer)
-                .listing(listing)
-                .message(request.message())
-                .build();
+         // Prevent buyer from requesting their own listing
+         if (listing.getCreatedBy().getEmail().equals(buyerEmail)) {
+             throw new RuntimeException("You cannot request your own listing");
+         }
 
-        dealRequestRepository.save(dealRequest);
-    }
+         // Prevent duplicate requests
+         boolean alreadyRequested = dealRequestRepository
+                 .existsByBuyer_EmailAndListing_Id(buyerEmail, request.listingId());
+
+         if (alreadyRequested) {
+             throw new RuntimeException("You have already requested this listing");
+         }
+
+         DealRequest dealRequest = DealRequest.builder()
+                 .buyer(buyer)
+                 .listing(listing)
+                 .message(request.message())
+                 .build();
+
+         dealRequestRepository.save(dealRequest);
+     }
 
 
-     // farmer accepts or rejects a request on their own listing
 
+    // farmer accepts or rejects a request on their own listing
     public void actOnRequest(Long requestId, String farmerEmail, String action) {
 
         DealRequest dealRequest = dealRequestRepository.findById(requestId)
@@ -58,6 +71,11 @@ public class DealRequestService {
             throw new RuntimeException("Unauthorized action");
         }
 
+        // Prevent action if already done
+        if (dealRequest.getStatus() != DealStatus.PENDING) {
+            throw new RuntimeException("Request already finalized");
+        }
+
         if ("ACCEPT".equalsIgnoreCase(action)) {
             dealRequest.setStatus(DealStatus.ACCEPTED);
         } else if ("REJECT".equalsIgnoreCase(action)) {
@@ -68,6 +86,7 @@ public class DealRequestService {
 
         dealRequestRepository.save(dealRequest);
     }
+
 
 
     // this is basically for dashboard showing listings requests for bot hbuyer and farmer

@@ -23,8 +23,8 @@ public class JwtUtil {
     private final SecretKey secretKey;
 
 
-     // Token validity duration (24 hours).
-    private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000;
+     // Token validity duration (15 mins)   - short token access
+     private static final long EXPIRATION_TIME = 15 * 60 * 1000;
 
     public JwtUtil() {
         this.secretKey = Keys.hmacShaKeyFor(
@@ -58,7 +58,7 @@ public class JwtUtil {
         return getClaims(token).getExpiration().after(new Date());
     }
 
-    // Parses JWT and returns claims.
+    // this parses JWT and returns claims.
     private Claims getClaims(String token) {
 
         return Jwts.parser()

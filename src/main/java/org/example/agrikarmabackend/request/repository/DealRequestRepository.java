@@ -13,5 +13,8 @@ public interface DealRequestRepository extends JpaRepository<DealRequest, Long> 
 
     // All requests for listings owned by a farmer
     List<DealRequest> findByListing_CreatedBy_Email(String email);
+
+    boolean existsByBuyer_EmailAndListing_Id(String email, Long listingId);
+
 }
 
