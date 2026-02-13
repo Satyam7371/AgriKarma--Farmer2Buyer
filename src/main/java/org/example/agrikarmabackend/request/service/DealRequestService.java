@@ -1,6 +1,7 @@
 package org.example.agrikarmabackend.request.service;
 
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.agrikarmabackend.common.enums.DealStatus;
 import org.example.agrikarmabackend.event.DealEvent;
@@ -29,6 +30,7 @@ public class DealRequestService {
 
 
     // buyer sends a request on a listing
+    @Transactional
      public void createRequest(CreateDealRequest request, String buyerEmail) {
 
          User buyer = userRepository.findByEmail(buyerEmail)
@@ -56,10 +58,13 @@ public class DealRequestService {
                  .message(request.message())
                  .build();
 
+            // First save and capture returned entity
+         DealRequest savedRequest = dealRequestRepository.save(dealRequest);
 
+            // Now publish event with proper ID
          dealEventPublisher.publish(
                  new DealEvent(
-                         dealRequest.getId(),
+                         savedRequest.getId(),
                          buyer.getEmail(),
                          listing.getCreatedBy().getEmail(),
                          DealStatus.PENDING,
@@ -67,13 +72,12 @@ public class DealRequestService {
                  )
          );
 
-
-         dealRequestRepository.save(dealRequest);
      }
 
 
 
     // farmer accepts or rejects a request on their own listing
+    @Transactional
     public void actOnRequest(Long requestId, String farmerEmail, String action) {
 
         DealRequest dealRequest = dealRequestRepository.findById(requestId)
@@ -100,18 +104,20 @@ public class DealRequestService {
             throw new RuntimeException("Invalid action");
         }
 
+            // First save updated entity
+        DealRequest updatedRequest = dealRequestRepository.save(dealRequest);
+
+            // Then publish event
         dealEventPublisher.publish(
                 new DealEvent(
-                        dealRequest.getId(),
-                        dealRequest.getBuyer().getEmail(),
-                        dealRequest.getListing().getCreatedBy().getEmail(),
-                        dealRequest.getStatus(),
-                        dealRequest.getMessage()
+                        updatedRequest.getId(),
+                        updatedRequest.getBuyer().getEmail(),
+                        updatedRequest.getListing().getCreatedBy().getEmail(),
+                        updatedRequest.getStatus(),
+                        updatedRequest.getMessage()
                 )
         );
 
-
-        dealRequestRepository.save(dealRequest);
     }
 
 
