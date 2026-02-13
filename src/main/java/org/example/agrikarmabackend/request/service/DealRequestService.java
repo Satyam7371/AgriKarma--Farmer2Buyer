@@ -3,6 +3,8 @@ package org.example.agrikarmabackend.request.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.agrikarmabackend.common.enums.DealStatus;
+import org.example.agrikarmabackend.event.DealEvent;
+import org.example.agrikarmabackend.event.DealEventPublisher;
 import org.example.agrikarmabackend.listing.entity.Listing;
 import org.example.agrikarmabackend.listing.repository.ListingRepository;
 import org.example.agrikarmabackend.request.dto.CreateDealRequest;
@@ -22,9 +24,11 @@ public class DealRequestService {
     private final DealRequestRepository dealRequestRepository;
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
+    private final DealEventPublisher dealEventPublisher;
 
 
-     // buyer sends a request on a listing
+
+    // buyer sends a request on a listing
      public void createRequest(CreateDealRequest request, String buyerEmail) {
 
          User buyer = userRepository.findByEmail(buyerEmail)
@@ -51,6 +55,18 @@ public class DealRequestService {
                  .listing(listing)
                  .message(request.message())
                  .build();
+
+
+         dealEventPublisher.publish(
+                 new DealEvent(
+                         dealRequest.getId(),
+                         buyer.getEmail(),
+                         listing.getCreatedBy().getEmail(),
+                         DealStatus.PENDING,
+                         request.message()
+                 )
+         );
+
 
          dealRequestRepository.save(dealRequest);
      }
@@ -83,6 +99,17 @@ public class DealRequestService {
         } else {
             throw new RuntimeException("Invalid action");
         }
+
+        dealEventPublisher.publish(
+                new DealEvent(
+                        dealRequest.getId(),
+                        dealRequest.getBuyer().getEmail(),
+                        dealRequest.getListing().getCreatedBy().getEmail(),
+                        dealRequest.getStatus(),
+                        dealRequest.getMessage()
+                )
+        );
+
 
         dealRequestRepository.save(dealRequest);
     }
