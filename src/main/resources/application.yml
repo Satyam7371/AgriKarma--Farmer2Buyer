@@ -15,7 +15,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
-          time_zone: UTC   # ensures Hibernate uses UTC
+          time_zone: UTC
 
   kafka:
     bootstrap-servers: localhost:9092
@@ -31,5 +31,15 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
+
+  mail:   #  for gmail smtp setup
+    host: smtp.gmail.com
+    port: 587
+    username: satyamchoubey95720@gmail.com
+    password: oropogclcdbxubjq
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
 server:
   port: 8080

@@ -7,15 +7,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
 
-
-// Extracts JWT from Authorization header
-// Validates token
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -34,27 +32,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        // Check if Authorization header is present and valid
+        // Check if header exists and starts with Bearer
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
             String token = authHeader.substring(7);
 
-            if (jwtUtil.isTokenValid(token)) {
+            try {
+                // Validate token
+                if (jwtUtil.isTokenValid(token)) {
 
-                String email = jwtUtil.extractEmail(token);
-                String role = jwtUtil.extractRole(token);
+                    String email = jwtUtil.extractEmail(token);
+                    String role = jwtUtil.extractRole(token);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                email,
-                                null,
-                                List.of(new SimpleGrantedAuthority("ROLE_" + role))     // spring security doesn't underststand farmer, buyer in this sway so add prefix role_
-                        );
+                    // ensure role is uppercase
+                    role = role.toUpperCase();
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    // Create authority with ROLE_ prefix
+                    SimpleGrantedAuthority authority =
+                            new SimpleGrantedAuthority("ROLE_" + role);
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    email,
+                                    null,
+                                    List.of(authority)
+                            );
+
+                    //  IMPORTANT: attach request details
+                    authentication.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+
+                    // Set authentication in context
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+
+            } catch (Exception e) {
+                // Optional: log error (avoid crashing filter chain)
+                System.out.println("JWT Processing Error: " + e.getMessage());
             }
         }
 
+        // Continue filter chain
         filterChain.doFilter(request, response);
     }
 }

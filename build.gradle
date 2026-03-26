@@ -45,6 +45,9 @@ dependencies {
 
     implementation 'org.springframework.kafka:spring-kafka'
 
+    // for gmail smtp setup
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 }
 
 tasks.named('test') {
