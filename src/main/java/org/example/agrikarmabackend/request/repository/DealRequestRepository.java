@@ -1,6 +1,7 @@
 package org.example.agrikarmabackend.request.repository;
 
 
+import org.example.agrikarmabackend.common.enums.DealStatus;
 import org.example.agrikarmabackend.request.entity.DealRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -15,6 +16,10 @@ public interface DealRequestRepository extends JpaRepository<DealRequest, Long> 
     List<DealRequest> findByListing_CreatedBy_Email(String email);
 
     boolean existsByBuyer_EmailAndListing_Id(String email, Long listingId);
+
+    long countByListing_CreatedBy_Email(String email);
+
+    long countByListing_CreatedBy_EmailAndStatus(String email, DealStatus status);
 
 }
 
