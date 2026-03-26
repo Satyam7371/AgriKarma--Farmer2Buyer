@@ -17,9 +17,15 @@ public interface DealRequestRepository extends JpaRepository<DealRequest, Long> 
 
     boolean existsByBuyer_EmailAndListing_Id(String email, Long listingId);
 
+    // for farmer dashboard
     long countByListing_CreatedBy_Email(String email);
 
     long countByListing_CreatedBy_EmailAndStatus(String email, DealStatus status);
+
+    // for buyer dashboard
+    long countByBuyer_Email(String email);
+
+    long countByBuyer_EmailAndStatus(String email, DealStatus status);
 
 }
 

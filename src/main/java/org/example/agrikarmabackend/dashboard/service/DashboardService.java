@@ -3,6 +3,7 @@ package org.example.agrikarmabackend.dashboard.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.agrikarmabackend.common.enums.DealStatus;
+import org.example.agrikarmabackend.dashboard.dto.BuyerDashboardResponse;
 import org.example.agrikarmabackend.dashboard.dto.FarmerDashboardResponse;
 import org.example.agrikarmabackend.listing.repository.ListingRepository;
 import org.example.agrikarmabackend.request.repository.DealRequestRepository;
@@ -15,9 +16,8 @@ public class DashboardService {
     private final ListingRepository listingRepository;
     private final DealRequestRepository dealRequestRepository;
 
-    /*
-     * Returns dashboard data for farmer.
-     */
+
+     // Returns dashboard data for farmer.
     public FarmerDashboardResponse getFarmerDashboard(String email) {
 
         long totalListings = listingRepository.countByCreatedBy_Email(email);
@@ -37,6 +37,32 @@ public class DashboardService {
         return new FarmerDashboardResponse(
                 totalListings,
                 totalRequests,
+                accepted,
+                rejected,
+                pending
+        );
+    }
+
+
+
+
+
+     //  Returns dashboard data for buyer.
+    public BuyerDashboardResponse getBuyerDashboard(String email) {
+
+        long total = dealRequestRepository.countByBuyer_Email(email);
+
+        long accepted = dealRequestRepository
+                .countByBuyer_EmailAndStatus(email, DealStatus.ACCEPTED);
+
+        long rejected = dealRequestRepository
+                .countByBuyer_EmailAndStatus(email, DealStatus.REJECTED);
+
+        long pending = dealRequestRepository
+                .countByBuyer_EmailAndStatus(email, DealStatus.PENDING);
+
+        return new BuyerDashboardResponse(
+                total,
                 accepted,
                 rejected,
                 pending

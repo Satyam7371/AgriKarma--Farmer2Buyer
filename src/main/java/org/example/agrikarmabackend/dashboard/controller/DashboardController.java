@@ -22,4 +22,15 @@ public class DashboardController {
                 dashboardService.getFarmerDashboard(authentication.getName())
         );
     }
+
+
+
+    @GetMapping("/buyer")
+    @PreAuthorize("hasRole('BUYER')")
+    public ResponseEntity<?> getBuyerDashboard(Authentication authentication) {
+
+        return ResponseEntity.ok(
+                dashboardService.getBuyerDashboard(authentication.getName())
+        );
+    }
 }
